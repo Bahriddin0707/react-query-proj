@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Person from "./Person";
 import PaginationControls from "./PaginationControls ";
+import { getPageFromUrl } from "../utils/getPageFromUrl";
 
 const fetchPeople = async (url) => {
   const res = await fetch(url || "http://swapi.dev/api/people/");
@@ -21,6 +22,8 @@ const People = () => {
       return fetchPeople(pageUrl);
     },
     keepPreviousData: true,
+    staleTime: 0,
+    cacheTime: 10,
   });
 
   if (isPending) {
@@ -29,6 +32,8 @@ const People = () => {
   if (isError) {
     return <div>Failed to fetch</div>;
   }
+
+  const { currentPage, totalPages } = getPageFromUrl(pageUrl, people);
 
   // Handler for Next Page button
   const handleNextPage = () => {
@@ -51,6 +56,8 @@ const People = () => {
         onPrevious={handlePreviousPage}
         hasNext={!!people?.next}
         hasPrevious={!!people?.previous}
+        currentPage={currentPage}
+        totalPages={totalPages}
       />
 
       <div>

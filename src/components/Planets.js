@@ -2,14 +2,15 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Planet from "./Planet";
 import PaginationControls from "./PaginationControls ";
+import { getPageFromUrl } from "../utils/getPageFromUrl";
 
-const fetchPlanets = async (url) => {
-  const res = await fetch(url || `https://swapi.dev/api/planets/`);
+const fetchPeople = async (url) => {
+  const res = await fetch(url || "http://swapi.dev/api/planets/");
   return res.json();
 };
 
-const Planets = () => {
-  const [pageUrl, setPageUrl] = useState("https://swapi.dev/api/planets/");
+const People = () => {
+  let [pageUrl, setPageUrl] = useState("http://swapi.dev/api/planets/");
 
   const {
     data: planets,
@@ -17,8 +18,12 @@ const Planets = () => {
     isError,
   } = useQuery({
     queryKey: ["planets", pageUrl],
-    queryFn: () => fetchPlanets(pageUrl),
+    queryFn: () => {
+      return fetchPeople(pageUrl);
+    },
     keepPreviousData: true,
+    staleTime: 0,
+    cacheTime: 10,
   });
 
   if (isPending) {
@@ -28,7 +33,7 @@ const Planets = () => {
     return <div>Failed to fetch</div>;
   }
 
-  console.log(planets);
+  const { currentPage, totalPages } = getPageFromUrl(pageUrl, planets);
 
   // Handler for Next Page button
   const handleNextPage = () => {
@@ -44,6 +49,7 @@ const Planets = () => {
     }
   };
 
+  console.log(planets);
   return (
     <div>
       <PaginationControls
@@ -51,6 +57,8 @@ const Planets = () => {
         onPrevious={handlePreviousPage}
         hasNext={!!planets?.next}
         hasPrevious={!!planets?.previous}
+        currentPage={currentPage}
+        totalPages={totalPages}
       />
 
       <div>
@@ -62,4 +70,4 @@ const Planets = () => {
   );
 };
 
-export default Planets;
+export default People;
